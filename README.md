@@ -1,4 +1,6 @@
-# Desafio 2: Crawlers  
+# Reddit Crawler  
+
+Based on this [challenge](https://github.com/idwall/desafios/tree/master/crawlers)
 
 ## Requirements  
 

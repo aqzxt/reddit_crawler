@@ -8,9 +8,9 @@ Python 3
 
 - Dependencies:  
 
-`requests`  [Requests docs](http://docs.python-requests.org/en/master/)
-`bs4`  [BeautifulSoup v4 docs](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)
-`click`  [Click docs](https://click.palletsprojects.com/en/7.x/#documentation)
+`requests`  [Requests docs](http://docs.python-requests.org/en/master/)  
+`bs4`  [BeautifulSoup v4 docs](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)  
+`click`  [Click docs](https://click.palletsprojects.com/en/7.x/#documentation)  
 
 - Installation:
 
@@ -45,7 +45,8 @@ Takes 4 optional parameters:
 
 - **No user input. Only default values.**  
 
-`$ python reddit_crawler.py`
+`$ python reddit_crawler.py`  
+
 
     1. Scan only 1 [Trending Subreddits](https://old.reddit.com/r/trendingsubreddits) page;  
     2. Process the first 3 subreddits URLs;  
@@ -54,9 +55,10 @@ Takes 4 optional parameters:
 
 - **With user input**
 
-`$ python reddit_crawler.py -i "space;nasa"`
-Or
-`$ python reddit_crawler.py --subr_input "space;nasa"`
+`$ python reddit_crawler.py -i "space;nasa"`  
+Or  
+`$ python reddit_crawler.py --subr_input "space;nasa"`  
+
 
     1. Directly validate and process `subr_input` data, including converting it to subreddits URLs;  
     2. Do the steps 3 and 4 listed above.
@@ -84,11 +86,11 @@ Thread URL: https://old.reddit.com/r/space
 Output for failed search:
 
 ```bash
-"Sorry. Based on your input there are no trending subreddits with 5k upvotes or higher. Try increasing how much pages to process (default: 3). Keep in mind it may take longer to process."
+Sorry. Based on your input there are no trending subreddits with 5k upvotes or higher. Try increasing how much pages to process (default: 3). Keep in mind it may take longer to process.
 ```
 
 Script uses old Reddit layout based on the domain format [https://old.reddit.com/](https://old.reddit.com/) to process data.  
 
 ### TO DO
 
-Build a Telegram Bot that interacts with `reddit_crawler.py` script and receives a response containing the list, upon the following command `/NadaPraFazer [+ Subrredit list]` (i.e. `/NadaPraFazer computerscience;nasa;space`).
+Build a Telegram Bot that interacts with `reddit_crawler.py` script and receives a response containing the list, upon the following command `/NothingToDo [+ Subrredit list]` (i.e. `/NothingToDo computerscience;nasa;space`).

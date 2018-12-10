@@ -8,15 +8,21 @@ Python 3
 
 - Dependencies:  
 
-`requests`  [Requests docs](http://docs.python-requests.org/en/master/)  
-`bs4`  [BeautifulSoup v4 docs](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)  
-`click`  [Click docs](https://click.palletsprojects.com/en/7.x/#documentation)  
+`requests`  
+`bs4`  
+`click`  
 
 - Installation:
 
 ```bash
 $ pip install -r requirements.txt
 ```
+
+Documentations:
+
+[Requests](http://docs.python-requests.org/en/master/)  
+[BeautifulSoup v4](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)  
+[Click](https://click.palletsprojects.com/en/7.x/#documentation)  
 
 ### Main Application  
 
@@ -47,21 +53,21 @@ Takes 4 optional parameters:
 
 `$ python reddit_crawler.py`  
 
-
-    1. Scan only 1 [Trending Subreddits](https://old.reddit.com/r/trendingsubreddits) page;  
-    2. Process the first 3 subreddits URLs;  
-    3. Check if each subreddit has a minimum of 5k upvotes;  
-    4. Finally, store the data and print them, if any. Else, print a message.  
+1. Scan only 1 [Trending Subreddits](https://old.reddit.com/r/trendingsubreddits) page;  
+2. Process the first 3 subreddits URLs;  
+3. Check if each subreddit has a minimum of 5k upvotes;  
+4. Finally, store the data and print them, if any. Else, print a message.  
 
 - **With user input**
 
 `$ python reddit_crawler.py -i "space;nasa"`  
-Or  
+
+or  
+
 `$ python reddit_crawler.py --subr_input "space;nasa"`  
 
-
-    1. Directly validate and process `subr_input` data, including converting it to subreddits URLs;  
-    2. Do the steps 3 and 4 listed above.
+1. Directly validate and process `subr_input` data, including converting it to subreddits URLs;  
+2. Do the steps 3 and 4 listed above.
 
 ### Goal
 

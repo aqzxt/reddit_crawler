@@ -1,72 +1,57 @@
-import requests, click
+import requests, os
 from bs4 import BeautifulSoup as soup
+from flask import (Flask, session, render_template, request, flash, jsonify)
+
+app = Flask(__name__)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
 
 
-@click.command()
-@click.option('-i', '--subr_input', default=None)
-@click.option('-s', '--max_subreddits', default=3)
-@click.option('-t', '--max_trending_pages', default=1)
-@click.option('-u', '--starting_url', default=None)
-def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
+def crawl_reddit(thread_input, upvotes_target, max_subreddits, max_trending_pages, starting_url):
     '''params
-        subr_input     ->  User input subreddits separated by ";". Default: empty.
-        max_subreddits ->  Maximum number of subreddits to process. Default: 3.
-        max_trending_pages-> Number of trending pages to process. Default: 1.
-        starting_url   ->  User custom starting trending subreddits URL. Default: None
+        thread_input        ->  User input threads separated by ";"
+        upvotes_target      ->  Determine the minimum upvotes
+        max_subreddits      ->  Maximum number of subreddits to search
+        max_trending_pages  ->  Number of trending pages to process. Default: 1.
+        starting_url        ->  User custom starting trending subreddits URL. Default: None
         
-        Reddit Crawler script. Search subreddits (limitted to 5, by default) with minimum of 5k upvotes, based on the (latest URL, by default) trending subreddits available.
+        Reddit Crawler script. Search subreddits (limitted to 5, by reddit website) with minimum of 5k upvotes, based on the (latest URL, by default) trending subreddits available.
         
         Output:
         If any, prints data to STDOUT, line by line, followed by an empty one every new subreddit
         If none, prints a message
     '''
-    
-    # Add real user agent
-    user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:63.0) Gecko/20100101 Firefox/63.0'
-    
-    # If user input a list of subreddits i.e. "computerscience;space;nasa", validate
-    if subr_input:
-        
-        if type(subr_input) != str:
-            raise TypeError("Expected 'subr_input' of type <class 'str'>. Got " + str(type(subr_input)))
-        
-        max_subr_pages = 1
-    else:
-        # Validate 'max_subreddits' and 'max_trending_pages'
-        if type(max_subreddits) != int:
-            raise TypeError("Expected 'max_subreddits' of type <class 'int'>. Got " + str(type(max_subreddits)))
-            
-        if type(max_trending_pages) != int and subr_input == None:
-            raise TypeError("Expected 'max_trending_pages' of type <class 'int'>. Got " + str(type(max_trending_pages)))
-        
-        # By default, it's just a portion of the first page (0 < 5/125 < 1)
-        # Max number of subreddits per page is 125 (5 per URL)
-        max_subr_pages = (max_subreddits // 125) + 1
 
-    # Loop for how many trending subreddits pages user input. Default: 1
+    # Add real user agent
+    user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'
+
+    # Max number of subreddits per page is 125 (25 trending subreddits x 5 subreddits). 
+    max_subr_pages = 1
+    
+    # Loop for how many trending subreddits pages the user input. Default: 1
     for page in range(max_subr_pages):
         
-        # === If user submitted custom subreddits
+        # === If user submitted custom threads
         # === Proceed to process the trending page
-        if subr_input == None:
+        if not thread_input:
             
             # ===== STARTING TRENDING SUBREDDITS PAGE ========
             
-            # ==Collect all subreddit urls
+            # === Collect all subreddit urls ===
             # If first iteration
             if page == 0:
-                
+
                 # Use default if none
                 if starting_url == None:
                     starting_url = 'https://old.reddit.com/r/trendingsubreddits/'
                     
                 if type(starting_url) != str:
-                    raise TypeError("Expected 'starting_url' of type <class 'str'>. Got " + type(subr_input))
+                    return "ERROR: Expected 'starting_url' of type <class 'str'>. Got " + str(type(starting_url))
                 
                 pattern = 'old.reddit.com/r/trendingsubreddits'
                 
                 if pattern not in starting_url:
-                    raise Exception("Input 'starting_url' is not a valid URL.")
+                    return "ERROR: Input 'starting_url' is not a valid URL."
                 
                 if not starting_url.startswith('http'):
                     starting_url = 'https://' + starting_url
@@ -83,13 +68,13 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
                 response = requests.get(url, headers = {'User-agent': user_agent})
 
             if not response.ok:
-                raise Exception('An error has occurred. Response code: ' + response.status_code)
+                return 'ERROR Response code: ' + str(response.status_code)
                 
             # Parse and store html response
             trendings_page = soup(response.text, 'lxml')
-            
 
-            # ============ LIMIT NUMBER OF SUBREDDITS TO SEARCH (default: 3) ============
+
+            # ============ LIMIT NUMBER OF SUBREDDITS TO SEARCH (default: 25) ============
             
             # If last iteration
             if page == max_subr_pages -1:
@@ -116,14 +101,14 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
 
                 response = requests.get(subr, headers = {'User-agent': user_agent})
                 if not response.ok:
-                    raise Exception("There was a server error. Code: " + response.status_code)
+
+                    return "ERROR: There was a server error. Code: " + str(response.status_code)
+
                 
                 trending_list.append(soup(response.text, 'lxml'))
                 
-            print('Hold your horses!!\nWorking...\n')
-
                 
-            # ======= LIMIT NUMBER OF TRENDING SUBREDDITS TO PROCESS (default: 1 -> Skips loop) =========
+            # ======= LIMIT NUMBER OF TRENDING SUBREDDITS TO PROCESS (default: 1 -> Skips first loop) =========
             
             # Extract all <strong> tags from each page, each containing <a> subreddit url
             strong_tag_list = []
@@ -140,13 +125,14 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
                     if a_tag.a:
                         # Build full subreddit url > "https://old.reddit.com" + "/r/nasa"
                         subreddits.append(url + a_tag.a.text)
-        
-        if subr_input != None:
-            subr_input = subr_input.split(';')
+
+
+        if thread_input:
+            thread_input = thread_input.split(';')
             # Build list urls
             url = 'https://old.reddit.com/r/'
             subreddits = []
-            for subr in subr_input:
+            for subr in thread_input:
                 subreddits.append(url + subr)
         
         # ======= INDIVIDUAL SUBREDDIT PAGE ==========
@@ -158,7 +144,7 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
 
             response = requests.get(subr, headers = {'User-agent': user_agent})
             if not response.ok:
-                raise Exception("There was a server error. Code: " + response.status_code)
+                return "ERROR: There was a server error. Code: " + str(response.status_code)
             
             subr_page.append(soup(response.text, 'lxml'))
             
@@ -169,10 +155,10 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
                 response = requests.get(next_url, headers = {'User-agent': user_agent})
                 
                 if not response.ok:
-                    raise Exception("There was a server error. Code: " + response.status_code)
+                    return "ERROR: There was a server error. Code: " + str(response.status_code)
                 
                 subr_page.append(soup(response.text, 'lxml'))
-        
+            
         
         # Get all html 'div' tags with a 'top-matter' class
         upvotes = []
@@ -181,7 +167,7 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
             
             upvotes.append(subr.find_all('div', {'class': 'likes'}))
             top_matter.append(subr.find_all('div', {'class': 'top-matter'}))
-            
+        
         # Containers to store the goods
         stats = [[] for i in range(5)]
         for k in range(len(upvotes)):
@@ -190,39 +176,67 @@ def crawl_reddit(subr_input, max_subreddits, max_trending_pages, starting_url):
                 # Filter by upvotes
                 curr = upvotes[k][i].attrs.get('title')
                 
-                # Make sure curr is not None and it's above 5k
-                if curr and int(curr) >= 5000: 
+                # Make sure curr is not None and it's above target
+                if curr and int(curr) >= upvotes_target: 
                     stats[0].append(curr)
                     
-                    comments_url = top_matter[k][i].find('a', {'class':"bylink comments may-blank"}).attrs.get('href')
+                    comments_url = top_matter[k][i].find('a', {'class':"bylink comments may-blank"})
+
+                    if comments_url: comments_url = comments_url.attrs.get('href')
+                    else: comments_url = ""
                     
                     c = comments_url.find('/comments/')
                     thread_url = comments_url[:c]
                     
                     subr_title = top_matter[k][i].p.text
-                    t = subr_title.rfind(' (')
+                    if subr_title.startswith('image/gif'): a = 9
+                    else: a = 0
+                    b = subr_title.rfind(' (')
                     
                     subreddit_name = thread_url[25:]
                     
                     # Get all the remaining info
                     stats[1].append(subreddit_name)
-                    stats[2].append(subr_title[:t])
+                    stats[2].append(subr_title[a:b])
                     stats[3].append(comments_url)
                     stats[4].append(thread_url[:c])
         
         if len(stats[0]) == 0:
-            print("Sorry. Based on your input there are no trending subreddits with 5k upvotes or higher. Try increasing how much pages to process (default: 3).")
-            return
+            return "Sorry. Based on your input, there are no trending subreddits with "+ str(upvotes_target) +" upvotes or higher. Try increasing how much subreddits to search (default: 3)."
         
-        # Output gathered information
+        # Gathered information in a list for each Subreddit
+        result = []
         for k in range(len(stats[0])):
-            print('Upvotes: ' + stats[0][k])
-            print('Subreddit: ' + stats[1][k])
-            print('Thread Title: ' + stats[2][k])
-            print('Comments URL: ' + stats[3][k])
-            print('Thread URL: ' + stats[4][k] + '\n')
-        return    
+            result.append([stats[0][k], stats[1][k], stats[2][k], stats[3][k], stats[4][k]])
 
- 
-if __name__ == '__main__':
-    crawl_reddit()
+        return result
+
+
+
+
+@app.route("/", methods=["GET", "POST"])
+def main():
+
+    query = request.form.get("query")
+    max_subr = request.form.get("max_subr")
+    upvotes_target = request.form.get("upvotes_target")
+
+    if not upvotes_target: upvotes_target = 5000
+    if not max_subr: max_subr = 3
+
+    # To submit user input
+    if request.method == "POST":
+
+        reddit = crawl_reddit(query, upvotes_target, max_subr, 1, None)
+
+        # If error
+        if type(reddit) == str:
+            return render_template('results.html', reddit=reddit, msg=query)
+
+        # Render results
+        return render_template('results.html', reddit=reddit, query=query, msg=None)
+
+    # If method == "GET"
+    return render_template("main.html")
+
+

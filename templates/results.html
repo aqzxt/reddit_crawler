@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+
+<h1 class="title">Reddit Crawler - User Query Results</h1>
+
+{% endblock %}
+
+{% block body %}
+
+<a href="{{ url_for("main") }}" title="main">Search Again?</a>
+<hr>
+
+<div class="books-header">
+
+    <div class="b-list">
+
+    {% if msg is none %}
+
+        {% if query is none %}
+        <h3>Showing results for the latest trending Reddit threads:</h3>
+        
+        {% else %}
+        <h3>Showing results for the term "{{ query }}":</h3>
+        
+        {% endif %}
+        <hr>
+    
+        {% for list in reddit %}
+        <ul>
+            <li class="book-item">Upvotes: {{ list.0 }}</li>
+            <li class="book-item">Subreddit: <a href="{{ reddit.0.4 }}">{{ reddit.0.1 }}</a></li>
+            <li class="book-item">Thread Title: <a href="{{ list.3 }}">{{ list.2 }}</a></li>
+        </ul>
+
+        <hr>
+        {% endfor %}
+
+    {% else %}
+
+        {{ reddit }}
+
+    {% endif %}
+
+    </div>
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+
+<h1 class="title">Reddit Crawler</h1>
+<br><br>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="home">
+    <h4>Know what the hottest Reddit threads are!</h4>
+
+<div class="forms">
+    <p>
+        <form class="register" action="{{ url_for("main") }}" method="POST">
+
+            Show the trendiest subreddit right now!<br>
+
+            <button class="ip-bt">GET 'EM'!</button><br><br><br>
+            
+        </form>
+    </p>
+
+    <h4>Try your luck! See if your favorite one(s) are trending:</h4>
+    <p>
+        <form class="register" action="{{ url_for("main") }}" method="POST">
+
+            Subreddit(s) separated by a semicolon ";":<br>
+            <input class="ip-bt" type="text" name="query" placeholder="nasa;space" required><br><br>
+
+            Minimum upvotes:<br>
+            <input class="ip-bt" type="number" name="max_subr" placeholder="Default: 5000"><br><br>
+            
+            Maximum number of subreddits:<br>
+            <input class="ip-bt" type="number" name="max_subr" placeholder="Default: 3"><br><br>
+
+            <button class="ip-bt">SEARCH</button>
+            
+        </form>
+    </p>
+    <hr>
+
+</div>
+
+<!-- <img class="img-home" src="static/img/bg-home2.jpg"> -->
+
+{% endblock %}

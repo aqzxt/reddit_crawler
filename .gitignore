@@ -1,4 +1,0 @@
-backend_only
-*__pycache__
-
-.gitignore
